@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  title           String
+  slug            String   @unique
+  description     String
+  longDescription String?
+  imageUrl        String
+  technologies    String   // JSON array stored as string
+  githubUrl       String?
+  liveUrl         String?
+  featured        Boolean  @default(false)
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([featured])
+  @@index([order])
+}
+
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String
+  content     String    // Markdown content
+  coverImage  String?
+  tags        String    // JSON array stored as string
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  views       Int       @default(0)
+  likes       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  reactions   BlogReaction[]
+
+  @@index([published])
+  @@index([publishedAt])
+  @@index([views])
+}
+
+model BlogReaction {
+  id        String   @id @default(cuid())
+  postId    String
+  type      String   // "like", "love", "fire", "clap"
+  sessionId String   // Anonymous session tracking
+  createdAt DateTime @default(now())
+
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, sessionId, type])
+  @@index([postId])
+}
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([read])
+  @@index([createdAt])
+}
