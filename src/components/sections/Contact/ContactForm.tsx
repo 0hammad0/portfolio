@@ -22,10 +22,13 @@ export function ContactForm() {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<ContactFormInput>({
     resolver: zodResolver(contactFormSchema),
   });
+
+  const messageValue = watch("message", "");
 
   const onSubmit = async (data: ContactFormInput) => {
     setStatus("submitting");
@@ -99,6 +102,7 @@ export function ContactForm() {
         error={errors.message?.message}
         showCount
         maxLength={5000}
+        currentValue={messageValue}
         {...register("message")}
         disabled={status === "submitting"}
         className="min-h-[150px]"

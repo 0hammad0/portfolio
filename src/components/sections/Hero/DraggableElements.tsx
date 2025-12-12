@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, PanInfo } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 interface DraggableItem {
@@ -34,90 +34,75 @@ const colorClasses: Record<string, string> = {
 };
 
 function DraggableTag({ item, containerRef }: { item: DraggableItem; containerRef: React.RefObject<HTMLDivElement | null> }) {
-  const [isDragging, setIsDragging] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [hasBeenDragged, setHasBeenDragged] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
+  // Use motion values for drag - these bypass React state and work instantly
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
   const handleDragStart = () => {
-    setIsDragging(true);
     setHasBeenDragged(true);
   };
 
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    setIsDragging(false);
-    setPosition((prev) => ({
-      x: prev.x + info.offset.x,
-      y: prev.y + info.offset.y,
-    }));
-  };
-
-  // Floating animation - only when not dragging and hasn't been dragged yet
-  const shouldFloat = !hasBeenDragged && !isDragging && !prefersReducedMotion;
+  // Floating animation - only when hasn't been dragged yet
+  const shouldFloat = !hasBeenDragged && !prefersReducedMotion;
 
   return (
-    <motion.div
-      drag={!prefersReducedMotion}
-      dragConstraints={containerRef}
-      dragElastic={0.15}
-      dragMomentum={false}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      initial={{
-        opacity: 0,
-        scale: 0,
-        rotate: item.rotation || 0,
-      }}
-      animate={shouldFloat ? {
-        opacity: 1,
-        scale: 1,
-        rotate: [item.rotation || 0, (item.rotation || 0) + 2, item.rotation || 0, (item.rotation || 0) - 2, item.rotation || 0],
-        x: position.x,
-        y: [0, -8, 0, 8, 0],
-      } : {
-        opacity: 1,
-        scale: 1,
-        rotate: isDragging ? 0 : item.rotation || 0,
-        x: position.x,
-        y: position.y,
-      }}
-      whileHover={{
-        scale: 1.15,
-        rotate: 0,
-        zIndex: 50,
-        transition: { duration: 0.2 },
-      }}
-      whileDrag={{
-        scale: 1.2,
-        rotate: 0,
-        zIndex: 100,
-        boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
-      }}
-      transition={shouldFloat ? {
-        opacity: { delay: item.floatDelay || 0, duration: 0.5 },
-        scale: { delay: item.floatDelay || 0, duration: 0.5 },
-        y: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: item.floatDelay || 0 },
-        rotate: { duration: 4, repeat: Infinity, ease: "easeInOut", delay: item.floatDelay || 0 },
-      } : {
-        type: "spring",
-        stiffness: 300,
-        damping: 25,
-      }}
-      className={`
-        absolute px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold
-        cursor-grab active:cursor-grabbing select-none pointer-events-auto
-        shadow-lg hover:shadow-xl transition-shadow duration-300
-        backdrop-blur-sm
-        ${colorClasses[item.color]}
-        ${isDragging ? "z-[100]" : "z-10"}
-      `}
+    // Outer wrapper for CSS float animation (doesn't interfere with drag)
+    <div
+      className={`absolute ${shouldFloat ? "animate-float" : ""}`}
       style={{
         left: item.position.x,
         top: item.position.y,
+        animationDelay: shouldFloat ? `${(item.floatDelay || 0) * 1000}ms` : undefined,
       }}
     >
-      {item.label}
-    </motion.div>
+      {/* Inner motion.div for Framer Motion drag */}
+      <motion.div
+        drag={!prefersReducedMotion}
+        dragConstraints={containerRef}
+        dragElastic={0.15}
+        dragMomentum={false}
+        onDragStart={handleDragStart}
+        style={{ x, y }}
+        initial={{
+          opacity: 0,
+          scale: 0,
+          rotate: item.rotation || 0,
+        }}
+        animate={{
+          opacity: 1,
+          scale: 1,
+          rotate: item.rotation || 0,
+        }}
+        whileHover={{
+          scale: 1.15,
+          rotate: 0,
+          zIndex: 50,
+          transition: { duration: 0.2 },
+        }}
+        whileDrag={{
+          scale: 1.2,
+          rotate: 0,
+          zIndex: 100,
+          boxShadow: "0 20px 40px rgba(0,0,0,0.3)",
+        }}
+        transition={{
+          opacity: { delay: item.floatDelay || 0, duration: 0.5 },
+          scale: { delay: item.floatDelay || 0, duration: 0.5 },
+        }}
+        className={`
+          px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold
+          cursor-grab active:cursor-grabbing select-none pointer-events-auto
+          shadow-lg hover:shadow-xl transition-shadow duration-300
+          backdrop-blur-sm
+          ${colorClasses[item.color]}
+        `}
+      >
+        {item.label}
+      </motion.div>
+    </div>
   );
 }
 

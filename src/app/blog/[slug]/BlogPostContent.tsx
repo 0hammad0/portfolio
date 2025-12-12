@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -137,9 +137,63 @@ function ReadingProgress() {
 
 // Table of contents (extracted from markdown headers)
 function TableOfContents({ content }: { content: string }) {
-  const headings = content.match(/^##\s+.+$/gm) || [];
+  const [activeId, setActiveId] = useState<string>("");
 
-  if (headings.length < 2) return null;
+  // Extract heading info - memoized to prevent unnecessary effect re-runs
+  const headingData = useMemo(() => {
+    const headings = content.match(/^##\s+.+$/gm) || [];
+    return headings.map((heading) => {
+      const text = heading.replace(/^##\s+/, "");
+      const id = text.toLowerCase().replace(/\s+/g, "-");
+      return { text, id };
+    });
+  }, [content]);
+
+  useEffect(() => {
+    if (headingData.length < 2) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id);
+          }
+        });
+      },
+      {
+        rootMargin: "-100px 0px -66% 0px",
+        threshold: 0,
+      }
+    );
+
+    // Observe all heading elements
+    headingData.forEach(({ id }) => {
+      const element = document.getElementById(id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => {
+      headingData.forEach(({ id }) => {
+        const element = document.getElementById(id);
+        if (element) {
+          observer.unobserve(element);
+        }
+      });
+    };
+  }, [headingData]);
+
+  if (headingData.length < 2) return null;
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    e.preventDefault();
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      setActiveId(id);
+    }
+  };
 
   return (
     <motion.div
@@ -153,14 +207,19 @@ function TableOfContents({ content }: { content: string }) {
           Contents
         </h4>
         <nav className="space-y-2">
-          {headings.map((heading, index) => {
-            const text = heading.replace(/^##\s+/, "");
-            const id = text.toLowerCase().replace(/\s+/g, "-");
+          {headingData.map(({ text, id }, index) => {
+            const isActive = activeId === id;
             return (
               <a
                 key={index}
                 href={`#${id}`}
-                className="block text-sm text-foreground-muted hover:text-accent transition-colors py-1 border-l-2 border-border hover:border-accent pl-3"
+                onClick={(e) => handleClick(e, id)}
+                className={cn(
+                  "block text-sm transition-colors py-1 border-l-2 pl-3",
+                  isActive
+                    ? "text-accent border-accent font-medium"
+                    : "text-foreground-muted border-border hover:text-accent hover:border-accent"
+                )}
               >
                 {text}
               </a>

@@ -8,12 +8,15 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
   error?: string;
   showCount?: boolean;
   maxLength?: number;
+  currentValue?: string; // For character count display when using uncontrolled (react-hook-form)
 }
 
 const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, label, error, showCount, maxLength, id, value, ...props }, ref) => {
+  ({ className, label, error, showCount, maxLength, id, value, currentValue, ...props }, ref) => {
     const textareaId = id || label?.toLowerCase().replace(/\s+/g, "-");
-    const currentLength = typeof value === "string" ? value.length : 0;
+    // Use currentValue prop (for react-hook-form) or value prop (for controlled)
+    const displayValue = currentValue ?? value;
+    const currentLength = typeof displayValue === "string" ? displayValue.length : 0;
 
     return (
       <div className="w-full space-y-2">

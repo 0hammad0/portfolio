@@ -6,6 +6,7 @@ import { ThemeProvider } from "./ThemeProvider";
 import { AccessibilityProvider } from "./AccessibilityProvider";
 import { SoundProvider } from "./SoundProvider";
 import { CustomCursor } from "@/components/ui/CustomCursor";
+import { CursorGlow } from "@/components/ui/CursorGlow";
 import { NoiseOverlayCSS } from "@/components/ui/NoiseOverlay";
 import { CommandPalette } from "@/components/interactive/CommandPalette";
 import { Terminal, TerminalToggle } from "@/components/interactive/Terminal";
@@ -65,6 +66,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
           {/* Global overlays and UI elements */}
           <NoiseOverlayCSS opacity={0.02} />
+          <CursorGlow />
           <CustomCursor />
 
           {/* Command Palette (Cmd+K) - handles keyboard shortcuts */}

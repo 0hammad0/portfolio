@@ -244,20 +244,37 @@ body {
    Shine Animation for Cards
    ======================================== */
 @keyframes shine {
-  from {
-    transform: translateX(-100%) skewX(-12deg);
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+    opacity: 0;
   }
-  to {
-    transform: translateX(200%) skewX(-12deg);
+  10% {
+    opacity: 1;
+  }
+  45% {
+    transform: translateX(200%) skewX(-15deg);
+    opacity: 1;
+  }
+  55% {
+    transform: translateX(200%) skewX(15deg);
+    opacity: 1;
+  }
+  90% {
+    transform: translateX(-100%) skewX(15deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-100%) skewX(15deg);
+    opacity: 0;
   }
 }
 
 .animate-shine {
-  animation: shine 1.5s ease-in-out;
+  animation: shine 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .group:hover .group-hover\:animate-shine {
-  animation: shine 1.5s ease-in-out;
+  animation: shine 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.1s;
 }
 
 /* ========================================
@@ -790,4 +807,154 @@ html {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: gradient-shift 3s linear infinite;
+}
+
+/* ========================================
+   Button Ripple Effect
+   ======================================== */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ========================================
+   Image Reveal Animation
+   ======================================== */
+@keyframes image-reveal {
+  0% {
+    clip-path: inset(100% 0% 0% 0%);
+    filter: blur(10px);
+  }
+  100% {
+    clip-path: inset(0% 0% 0% 0%);
+    filter: blur(0px);
+  }
+}
+
+@keyframes image-reveal-left {
+  0% {
+    clip-path: inset(0% 100% 0% 0%);
+    filter: blur(10px);
+  }
+  100% {
+    clip-path: inset(0% 0% 0% 0%);
+    filter: blur(0px);
+  }
+}
+
+@keyframes image-reveal-scale {
+  0% {
+    clip-path: inset(50% 50% 50% 50%);
+    transform: scale(1.1);
+    filter: blur(10px);
+  }
+  100% {
+    clip-path: inset(0% 0% 0% 0%);
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+.animate-image-reveal {
+  animation: image-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-image-reveal-left {
+  animation: image-reveal-left 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-image-reveal-scale {
+  animation: image-reveal-scale 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ========================================
+   Link Underline Animation
+   ======================================== */
+.link-underline {
+  position: relative;
+  text-decoration: none;
+}
+
+.link-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.link-underline:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+/* Glow variant */
+.link-underline-glow::after {
+  box-shadow: 0 0 10px var(--accent);
+}
+
+/* ========================================
+   Text Scatter Animation (on hover)
+   ======================================== */
+@keyframes scatter {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--scatter-x, 10px), var(--scatter-y, -10px)) rotate(var(--scatter-r, 10deg));
+    opacity: 0;
+  }
+}
+
+.text-scatter-char {
+  display: inline-block;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.text-scatter:hover .text-scatter-char {
+  animation: scatter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ========================================
+   Section Transition Effects
+   ======================================== */
+.section-enter {
+  opacity: 0;
+  transform: translateY(40px);
+  filter: blur(10px);
+}
+
+.section-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  filter: blur(0px);
+  transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.section-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.section-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  filter: blur(5px);
+  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }

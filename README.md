@@ -22,10 +22,12 @@ A modern, animated portfolio website built with Next.js 15, TypeScript, and Tail
 
 ### Interactive Elements
 - **Command Palette** (Cmd+K) - Quick navigation and actions
-- **Mini Terminal** - Interactive terminal with commands
+- **Mini Terminal** - Draggable terminal with commands (minimize, expand, close)
 - **Custom Cursor** - Instant-responsive SVG arrow cursor
+- **Cursor Glow Effect** - Subtle spotlight that follows cursor
 - **Sound Effects** - Toggle-able UI sounds
 - **Draggable Skill Cards** - Rearrangeable skill visualization
+- **Button Ripple Effect** - Material Design-style ripple on click
 
 ### Visual Enhancements
 - Animated gradient text
@@ -34,6 +36,11 @@ A modern, animated portfolio website built with Next.js 15, TypeScript, and Tail
 - Magnetic buttons
 - Scroll-triggered animations
 - Particle background in hero
+- **Page Transitions** - Smooth fade between pages
+- **Image Reveal Animations** - Clip-path reveals on scroll
+- **Section Transitions** - Blur/fade reveals for sections
+- **Text Hover Effects** - Character scatter, wave, and slide animations
+- **Animated Link Underlines** - Multiple underline animation variants
 
 ### Accessibility
 - Keyboard navigation with visible focus indicators
@@ -98,13 +105,19 @@ src/
 ├── app/                    # Next.js App Router pages
 │   ├── api/               # API routes
 │   ├── blog/              # Blog pages
+│   ├── template.tsx       # Page transitions
 │   └── page.tsx           # Home page
 ├── components/
-│   ├── animations/        # Animation wrappers
+│   ├── animations/        # Animation components
+│   │   ├── ImageReveal    # Clip-path image reveals
+│   │   ├── SectionReveal  # Section transitions
+│   │   ├── TextHover      # Text hover effects
+│   │   ├── AnimatedLink   # Animated underlines
+│   │   └── ...more
 │   ├── interactive/       # Terminal, Command Palette
 │   ├── layout/            # Header, Footer, Navigation
 │   ├── sections/          # Hero, About, Skills, Projects, Contact, Blog
-│   ├── ui/                # Reusable UI components
+│   ├── ui/                # Reusable UI components (Button w/ ripple, CursorGlow)
 │   └── visualizations/    # Skill radar chart
 ├── hooks/                 # Custom React hooks
 ├── lib/                   # Utilities, constants, database

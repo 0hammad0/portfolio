@@ -26,8 +26,9 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
   const mouseXSpring = useSpring(x, { stiffness: 300, damping: 30 });
   const mouseYSpring = useSpring(y, { stiffness: 300, damping: 30 });
 
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["10deg", "-10deg"]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-10deg", "10deg"]);
+  // Reduced tilt angle to prevent text blur
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["7deg", "-7deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-7deg", "7deg"]);
 
   const handleMouse = (e: React.MouseEvent<HTMLDivElement>) => {
     if (prefersReducedMotion || !ref.current) return;
@@ -55,6 +56,7 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ margin: "-50px" }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
+      className="h-full"
     >
       <motion.div
         ref={ref}
@@ -69,7 +71,7 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
                 transformStyle: "preserve-3d",
               }
         }
-        className="group relative"
+        className="group relative h-full"
       >
         {/* Glow effect on hover */}
         <div className="absolute -inset-[1px] rounded-xl bg-gradient-to-r from-accent via-accent/50 to-accent opacity-0 group-hover:opacity-100 blur-sm transition-opacity duration-500" />
@@ -82,13 +84,9 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
             "transition-all duration-500",
             "group-hover:border-accent/30"
           )}
-          style={{ transformStyle: "preserve-3d" }}
         >
           {/* Image */}
-          <div
-            className="relative h-52 overflow-hidden bg-background-tertiary"
-            style={{ transform: "translateZ(20px)" }}
-          >
+          <div className="relative h-52 overflow-hidden bg-background-tertiary">
             <Image
               src={project.imageUrl}
               alt={project.title}
@@ -146,8 +144,8 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
             )}
 
             {/* Shine effect on hover */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none overflow-hidden">
-              <div className="absolute -inset-full top-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-shine" />
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none overflow-hidden">
+              <div className="absolute -inset-full top-0 w-3/4 h-full bg-gradient-to-r from-transparent via-white/25 to-transparent group-hover:animate-shine" />
             </div>
 
             {/* Fallback gradient if no image */}
@@ -155,10 +153,7 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
           </div>
 
           {/* Content */}
-          <div
-            className="p-6 flex flex-col flex-1"
-            style={{ transform: "translateZ(30px)" }}
-          >
+          <div className="p-6 flex flex-col flex-1">
             <div className="flex items-start justify-between gap-2 mb-2">
               <h3 className="text-xl font-semibold group-hover:text-accent transition-colors duration-300">
                 {project.title}

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Terminal as TerminalIcon, X, Minus, Square } from "lucide-react";
+import { motion, AnimatePresence, useDragControls } from "framer-motion";
+import { Terminal as TerminalIcon, X, Minus, Square, GripHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { siteConfig } from "@/lib/constants/siteConfig";
 
@@ -176,6 +176,10 @@ Knock, knock, Neo.
 
 export function Terminal({ isOpen, onClose }: TerminalProps) {
   const [input, setInput] = useState("");
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const dragControls = useDragControls();
+  const constraintsRef = useRef<HTMLDivElement>(null);
   const [history, setHistory] = useState<HistoryItem[]>([
     {
       command: "",
@@ -303,23 +307,43 @@ Type 'help' for available commands.
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 50, scale: 0.9 }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
-          className="fixed bottom-4 right-4 z-[90] w-[95vw] max-w-2xl"
-        >
+        <>
+          {/* Drag constraints - full viewport */}
+          <div
+            ref={constraintsRef}
+            className="fixed inset-0 pointer-events-none z-[89]"
+          />
+          <motion.div
+            drag
+            dragControls={dragControls}
+            dragConstraints={constraintsRef}
+            dragElastic={0.1}
+            dragMomentum={false}
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            className={cn(
+              "fixed bottom-4 right-4 z-[90]",
+              isExpanded
+                ? "w-[95vw] max-w-5xl"
+                : "w-[95vw] max-w-2xl"
+            )}
+          >
           <div
             className={cn(
-              "rounded-xl overflow-hidden",
+              "rounded-xl overflow-hidden flex flex-col",
               "bg-[#1e1e1e] border border-[#3d3d3d]",
               "shadow-2xl shadow-black/50"
             )}
           >
-            {/* Title bar */}
-            <div className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-[#3d3d3d]">
+            {/* Title bar - drag handle */}
+            <div
+              onPointerDown={(e) => dragControls.start(e)}
+              className="flex items-center justify-between px-4 py-2 bg-[#2d2d2d] border-b border-[#3d3d3d] cursor-grab active:cursor-grabbing select-none"
+            >
               <div className="flex items-center gap-2">
+                <GripHorizontal className="h-4 w-4 text-gray-600" />
                 <TerminalIcon className="h-4 w-4 text-green-500" />
                 <span className="text-sm text-gray-400 font-mono">
                   terminal@portfolio
@@ -328,19 +352,25 @@ Type 'help' for available commands.
               <div className="flex items-center gap-1">
                 <button
                   className="p-1 rounded hover:bg-white/10 transition-colors text-gray-500 hover:text-gray-300"
-                  onClick={() => {}}
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  title={isMinimized ? "Restore" : "Minimize"}
                 >
                   <Minus className="h-3 w-3" />
                 </button>
                 <button
                   className="p-1 rounded hover:bg-white/10 transition-colors text-gray-500 hover:text-gray-300"
-                  onClick={() => {}}
+                  onClick={() => {
+                    setIsExpanded(!isExpanded);
+                    setIsMinimized(false);
+                  }}
+                  title={isExpanded ? "Restore" : "Maximize"}
                 >
                   <Square className="h-3 w-3" />
                 </button>
                 <button
                   className="p-1 rounded hover:bg-red-500/20 transition-colors text-gray-500 hover:text-red-400"
                   onClick={onClose}
+                  title="Close"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -348,11 +378,20 @@ Type 'help' for available commands.
             </div>
 
             {/* Terminal content */}
-            <div
-              ref={terminalRef}
-              className="p-4 h-80 overflow-y-auto font-mono text-sm"
-              onClick={() => inputRef.current?.focus()}
-            >
+            <AnimatePresence>
+              {!isMinimized && (
+                <motion.div
+                  ref={terminalRef}
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{
+                    height: isExpanded ? "60vh" : 320,
+                    opacity: 1
+                  }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="p-4 overflow-y-auto font-mono text-sm"
+                  onClick={() => inputRef.current?.focus()}
+                >
               {history.map((item, index) => (
                 <div key={index} className="mb-2">
                   {item.command && (
@@ -386,9 +425,12 @@ Type 'help' for available commands.
                   autoComplete="off"
                 />
               </form>
-            </div>
+            </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
+        </>
       )}
     </AnimatePresence>
   );

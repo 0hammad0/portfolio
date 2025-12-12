@@ -26,95 +26,101 @@ function FeaturedShowcaseComponent({ projects, className }: FeaturedShowcaseProp
   useEffect(() => {
     if (prefersReducedMotion || !containerRef.current || !horizontalRef.current) return;
 
-    const container = containerRef.current;
-    const horizontal = horizontalRef.current;
-    const cards = horizontal.querySelectorAll(".showcase-card");
-    const scrollWidth = horizontal.scrollWidth - container.offsetWidth;
+    let ctx: gsap.Context | null = null;
 
-    const ctx = gsap.context(() => {
-      // Horizontal scroll animation with increased scrub for smoother performance
-      const scrollTween = gsap.to(horizontal, {
-        x: -scrollWidth,
-        ease: "none",
-        scrollTrigger: {
-          trigger: container,
-          start: "top top",
-          end: () => `+=${scrollWidth}`,
-          scrub: 1.5, // Increased scrub for smoother updates (less CPU intensive)
-          pin: true,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            // Throttle index updates to prevent excessive re-renders
-            const progress = self.progress;
-            const newIndex = Math.min(
-              Math.floor(progress * projects.length),
-              projects.length - 1
-            );
-            // Only update state if index changed
-            if (newIndex !== lastIndexRef.current) {
-              lastIndexRef.current = newIndex;
-              setActiveIndex(newIndex);
-            }
-          },
-        },
-      });
+    // Small delay to ensure page transition is complete and layout is stable
+    const initTimeout = setTimeout(() => {
+      if (!containerRef.current || !horizontalRef.current) return;
 
-      // Simplified card animations - only animate visible cards
-      cards.forEach((card, i) => {
-        const image = card.querySelector(".card-image");
-        const content = card.querySelector(".card-content");
+      const container = containerRef.current;
+      const horizontal = horizontalRef.current;
+      const cards = horizontal.querySelectorAll(".showcase-card");
+      const scrollWidth = horizontal.scrollWidth - container.offsetWidth;
 
-        // Reduced parallax effect (less expensive)
-        if (image) {
-          gsap.to(image, {
-            xPercent: -10, // Reduced from -15 for better performance
-            ease: "none",
-            scrollTrigger: {
-              trigger: card,
-              containerAnimation: scrollTween,
-              start: "left right",
-              end: "right left",
-              scrub: 2, // Higher scrub = smoother but less responsive
-            },
-          });
-        }
-
-        // Content reveal - simplified
-        if (content?.children?.length) {
-          gsap.from(content.children, {
-            y: 40, // Reduced from 60
-            opacity: 0,
-            stagger: 0.08,
-            duration: 0.6,
-            ease: "power2.out", // Simpler easing
-            scrollTrigger: {
-              trigger: card,
-              containerAnimation: scrollTween,
-              start: "left 75%",
-              toggleActions: "play none none reverse",
-            },
-          });
-        }
-      });
-
-      // Progress indicator
-      const progressBar = container.querySelector(".progress-bar-fill");
-      if (progressBar) {
-        gsap.to(progressBar, {
-          scaleX: 1,
+      ctx = gsap.context(() => {
+        // Horizontal scroll animation
+        const scrollTween = gsap.to(horizontal, {
+          x: -scrollWidth,
           ease: "none",
           scrollTrigger: {
             trigger: container,
             start: "top top",
             end: () => `+=${scrollWidth}`,
             scrub: 1.5,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const progress = self.progress;
+              const newIndex = Math.min(
+                Math.floor(progress * projects.length),
+                projects.length - 1
+              );
+              if (newIndex !== lastIndexRef.current) {
+                lastIndexRef.current = newIndex;
+                setActiveIndex(newIndex);
+              }
+            },
           },
         });
-      }
-    }, container);
 
-    return () => ctx.revert();
+        // Card animations
+        cards.forEach((card) => {
+          const image = card.querySelector(".card-image");
+          const content = card.querySelector(".card-content");
+
+          if (image) {
+            gsap.to(image, {
+              xPercent: -10,
+              ease: "none",
+              scrollTrigger: {
+                trigger: card,
+                containerAnimation: scrollTween,
+                start: "left right",
+                end: "right left",
+                scrub: 2,
+              },
+            });
+          }
+
+          if (content?.children?.length) {
+            gsap.from(content.children, {
+              y: 40,
+              opacity: 0,
+              stagger: 0.08,
+              duration: 0.6,
+              ease: "power2.out",
+              scrollTrigger: {
+                trigger: card,
+                containerAnimation: scrollTween,
+                start: "left 75%",
+                toggleActions: "play none none reverse",
+              },
+            });
+          }
+        });
+
+        // Progress indicator
+        const progressBar = container.querySelector(".progress-bar-fill");
+        if (progressBar) {
+          gsap.to(progressBar, {
+            scaleX: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: container,
+              start: "top top",
+              end: () => `+=${scrollWidth}`,
+              scrub: 1.5,
+            },
+          });
+        }
+      }, container);
+    }, 150); // Delay for page transition
+
+    return () => {
+      clearTimeout(initTimeout);
+      if (ctx) ctx.revert();
+    };
   }, [prefersReducedMotion, projects.length]);
 
   if (projects.length === 0) return null;
