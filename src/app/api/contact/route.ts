@@ -1,18 +1,8 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 import { contactFormSchema } from "@/lib/utils/validators";
 
-// In-memory storage for demo (in production, use database)
-const submissions: Array<{
-  id: string;
-  name: string;
-  email: string;
-  subject?: string;
-  message: string;
-  read: boolean;
-  createdAt: Date;
-}> = [];
-
-// Simple rate limiting (in production, use a proper rate limiter)
+// Simple rate limiting (in production, use Redis or similar)
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT = 3;
 const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour
@@ -63,25 +53,20 @@ export async function POST(request: Request) {
 
     const { name, email, subject, message } = validationResult.data;
 
-    // Create submission (in production, save to database)
-    const submission = {
-      id: crypto.randomUUID(),
-      name,
-      email,
-      subject,
-      message,
-      read: false,
-      createdAt: new Date(),
-    };
+    // Save to database
+    const submission = await prisma.contactSubmission.create({
+      data: {
+        name,
+        email,
+        subject,
+        message,
+        status: "UNREAD",
+      },
+    });
 
-    submissions.push(submission);
+    console.log("New contact submission:", submission.id);
 
-    // In production, you would:
-    // 1. Save to database using Prisma
-    // 2. Send email notification using Resend/SendGrid
-    // 3. Maybe send Slack/Discord notification
-
-    console.log("New contact submission:", submission);
+    // TODO: Add email notification using Resend/SendGrid
 
     return NextResponse.json(
       {
